@@ -16,6 +16,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include <PAGText.h>
 #include "JNIHelper.h"
 #include "JPAGLayerHandle.h"
 
@@ -44,7 +45,8 @@ JNIEXPORT jint JNICALL Java_org_libpag_PAGFile_MaxSupportedTagLevel(JNIEnv*, jcl
   return pag::PAGFile::MaxSupportedTagLevel();
 }
 
-JNIEXPORT jobject JNICALL Java_org_libpag_PAGFile_LoadFromPath(JNIEnv* env, jclass, jstring pathObj) {
+JNIEXPORT jobject JNICALL Java_org_libpag_PAGFile_LoadFromPath(JNIEnv* env, jclass,
+                                                               jstring pathObj) {
   if (pathObj == nullptr) {
     LOGE("PAGFile.LoadFromPath() Invalid path specified.");
     return NULL;
@@ -62,8 +64,9 @@ JNIEXPORT jobject JNICALL Java_org_libpag_PAGFile_LoadFromPath(JNIEnv* env, jcla
   return ToPAGLayerJavaObject(env, pagFile);
 }
 
-JNIEXPORT jobject JNICALL Java_org_libpag_PAGFile_LoadFromBytes(JNIEnv* env, jclass, jbyteArray bytes,
-                                                      jint length, jstring jpath) {
+JNIEXPORT jobject JNICALL Java_org_libpag_PAGFile_LoadFromBytes(JNIEnv* env, jclass,
+                                                                jbyteArray bytes, jint length,
+                                                                jstring jpath) {
   if (bytes == nullptr) {
     LOGE("PAGFile.LoadFromBytes() Invalid pag file bytes specified.");
     return NULL;
@@ -120,6 +123,27 @@ JNIEXPORT jstring JNICALL Java_org_libpag_PAGFile_path(JNIEnv* env, jobject thiz
   return SafeConvertToJString(env, path);
 }
 
+PAG_API jobject Java_org_libpag_PAGFile_getTextData(JNIEnv* env, jobject thiz, jint index) {
+  auto pagFile = getPAGFile(env, thiz);
+  if (pagFile == nullptr) {
+    return nullptr;
+  }
+  auto textDocument = pagFile->getTextData(index);
+  return ToPAGTextObject(env, textDocument);
+}
+
+PAG_API jobjectArray Java_org_libpag_PAGFile_getLayersByEditableIndex(JNIEnv* env, jobject thiz,
+                                                                      jint editableIndex,
+                                                                      jint layerType) {
+  auto pagFile = getPAGFile(env, thiz);
+  if (pagFile == nullptr) {
+    return ToPAGLayerJavaObjectList(env, {});
+  }
+  auto layers =
+      pagFile->getLayersByEditableIndex(editableIndex, static_cast<pag::LayerType>(layerType));
+  return ToPAGLayerJavaObjectList(env, layers);
+}
+
 JNIEXPORT jint JNICALL Java_org_libpag_PAGFile_timeStretchMode(JNIEnv* env, jobject thiz) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
@@ -128,7 +152,8 @@ JNIEXPORT jint JNICALL Java_org_libpag_PAGFile_timeStretchMode(JNIEnv* env, jobj
   return static_cast<jint>(pagFile->timeStretchMode());
 }
 
-JNIEXPORT void JNICALL Java_org_libpag_PAGFile_setTimeStretchMode(JNIEnv* env, jobject thiz, jint mode) {
+JNIEXPORT void JNICALL Java_org_libpag_PAGFile_setTimeStretchMode(JNIEnv* env, jobject thiz,
+                                                                  jint mode) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return;
@@ -136,7 +161,8 @@ JNIEXPORT void JNICALL Java_org_libpag_PAGFile_setTimeStretchMode(JNIEnv* env, j
   pagFile->setTimeStretchMode(static_cast<PAGTimeStretchMode>(mode));
 }
 
-JNIEXPORT void JNICALL Java_org_libpag_PAGFile_setDuration(JNIEnv* env, jobject thiz, jlong duration) {
+JNIEXPORT void JNICALL Java_org_libpag_PAGFile_setDuration(JNIEnv* env, jobject thiz,
+                                                           jlong duration) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return;

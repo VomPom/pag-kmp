@@ -175,7 +175,7 @@ public class PAGPlayer {
      * has been signaled and waited on. If this call returns false, then the GPU will not wait on
      * the passed sync object, and the client will still own the sync object.
      * Usually called before {@link #flush()} and @{@link #flushAndFenceSync(long[])}
-     *
+     * <p>
      * Returns true if GPU is waiting on sync object
      */
     public native boolean waitSync(long sync);

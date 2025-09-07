@@ -22,15 +22,12 @@
 #include "JPAGLayerHandle.h"
 
 extern "C" jint JNI_OnLoad(JavaVM* vm, void*) {
-  if (vm) {
-    //no-op to avoid libpag compile -Wall -Werror.
-  }
+  tgfx::JNIEnvironment::SetJavaVM(vm);
   LOGI("PAG JNI_OnLoad Version: %s", pag::PAG::SDKVersion().c_str());
   return JNI_VERSION_1_4;
 }
 
 extern "C" void JNI_OnUnload(JavaVM*, void*) {
-
 }
 
 namespace pag {
@@ -45,24 +42,109 @@ jobject MakeRectFObject(JNIEnv* env, float x, float y, float width, float height
   return env->NewObject(RectFClass, RectFConstructID, x, y, x + width, y + height);
 }
 
+jint MakeColorInt(JNIEnv*, uint32_t red, uint32_t green, uint32_t blue) {
+  uint32_t color = (255 << 24) | (red << 16) | (green << 8) | (blue << 0);
+  return static_cast<int>(color);
+}
+
+jobject MakePAGFontObject(JNIEnv* env, const std::string& familyName,
+                          const std::string& familyStyle) {
+  static Global<jclass> PAGFontClass = env->FindClass("org/libpag/PAGFont");
+  if (PAGFontClass.get() == nullptr) {
+    env->ExceptionClear();
+    printf("Could not run JNIHelper.MakePAGFontObject(), PAGFontClass is not found!");
+    return nullptr;
+  }
+  static jmethodID PAGFontConstructID = env->GetMethodID(PAGFontClass.get(), "<init>", "()V");
+  static jfieldID PAGFont_fontFamily =
+      env->GetFieldID(PAGFontClass.get(), "fontFamily", "Ljava/lang/String;");
+  static jfieldID PAGFont_fontStyle =
+      env->GetFieldID(PAGFontClass.get(), "fontStyle", "Ljava/lang/String;");
+
+  jobject fontObject = env->NewObject(PAGFontClass.get(), PAGFontConstructID);
+  auto fontFamily = SafeConvertToJString(env, familyName);
+  env->SetObjectField(fontObject, PAGFont_fontFamily, fontFamily);
+  auto fontStyle = SafeConvertToJString(env, familyStyle);
+  env->SetObjectField(fontObject, PAGFont_fontStyle, fontStyle);
+  env->DeleteLocalRef(fontFamily);
+  env->DeleteLocalRef(fontStyle);
+  return fontObject;
+}
+jobjectArray ToPAGLayerJavaObjectList(JNIEnv* env,
+                                      const std::vector<std::shared_ptr<pag::PAGLayer>>& layers) {
+  static Global<jclass> PAGLayer_Class = env->FindClass("org/libpag/PAGLayer");
+  if (PAGLayer_Class.get() == nullptr) {
+    env->ExceptionClear();
+    LOGE("Could not run JNIHelper.ToPAGLayerJavaObjectList(), PAGLayer_Class is not found!");
+    return nullptr;
+  }
+  if (layers.empty()) {
+    return env->NewObjectArray(0, PAGLayer_Class.get(), nullptr);
+  }
+  jobjectArray layerArray = env->NewObjectArray(layers.size(), PAGLayer_Class.get(), nullptr);
+  for (size_t i = 0; i < layers.size(); ++i) {
+    auto& layer = layers[i];
+    auto jLayer = ToPAGLayerJavaObject(env, layer);
+    env->SetObjectArrayElement(layerArray, i, jLayer);
+    env->DeleteLocalRef(jLayer);
+  }
+  return layerArray;
+}
+
 jobject ToPAGLayerJavaObject(JNIEnv* env, std::shared_ptr<pag::PAGLayer> pagLayer) {
   if (env == nullptr || pagLayer == nullptr) {
     return nullptr;
   }
   jobject layerObject = nullptr;
   switch (pagLayer->layerType()) {
+    case pag::LayerType::Shape: {
+      static Global<jclass> PAGLayer_Class = env->FindClass("org/libpag/PAGShapeLayer");
+      static auto PAGLayer_Constructor = env->GetMethodID(PAGLayer_Class.get(), "<init>", "(J)V");
+      layerObject = env->NewObject(PAGLayer_Class.get(), PAGLayer_Constructor,
+                                   reinterpret_cast<jlong>(new JPAGLayerHandle(pagLayer)));
+      break;
+    }
+    case pag::LayerType::Solid: {
+      static Global<jclass> PAGLayer_Class = env->FindClass("org/libpag/PAGSolidLayer");
+      static auto PAGLayer_Constructor = env->GetMethodID(PAGLayer_Class.get(), "<init>", "(J)V");
+      layerObject = env->NewObject(PAGLayer_Class.get(), PAGLayer_Constructor,
+                                   reinterpret_cast<jlong>(new JPAGLayerHandle(pagLayer)));
+      break;
+    }
     case pag::LayerType::PreCompose: {
       if (std::static_pointer_cast<pag::PAGComposition>(pagLayer)->isPAGFile()) {
-        jclass PAGLayer_Class = env->FindClass("org/libpag/PAGFile");
-        auto PAGLayer_Constructor = env->GetMethodID(PAGLayer_Class, "<init>", "(J)V");
-        layerObject = env->NewObject(PAGLayer_Class, PAGLayer_Constructor,
+        static Global<jclass> PAGLayer_Class = env->FindClass("org/libpag/PAGFile");
+        static auto PAGLayer_Constructor = env->GetMethodID(PAGLayer_Class.get(), "<init>", "(J)V");
+        layerObject = env->NewObject(PAGLayer_Class.get(), PAGLayer_Constructor,
+                                     reinterpret_cast<jlong>(new JPAGLayerHandle(pagLayer)));
+      } else {
+        static Global<jclass> PAGLayer_Class = env->FindClass("org/libpag/PAGComposition");
+        static auto PAGLayer_Constructor = env->GetMethodID(PAGLayer_Class.get(), "<init>", "(J)V");
+        layerObject = env->NewObject(PAGLayer_Class.get(), PAGLayer_Constructor,
                                      reinterpret_cast<jlong>(new JPAGLayerHandle(pagLayer)));
       }
-
+      break;
+    }
+    case pag::LayerType::Text: {
+      static Global<jclass> PAGLayer_Class = env->FindClass("org/libpag/PAGTextLayer");
+      static auto PAGLayer_Constructor = env->GetMethodID(PAGLayer_Class.get(), "<init>", "(J)V");
+      layerObject = env->NewObject(PAGLayer_Class.get(), PAGLayer_Constructor,
+                                   reinterpret_cast<jlong>(new JPAGLayerHandle(pagLayer)));
+      break;
+    }
+    case pag::LayerType::Image: {
+      static Global<jclass> PAGLayer_Class = env->FindClass("org/libpag/PAGImageLayer");
+      static auto PAGLayer_Constructor = env->GetMethodID(PAGLayer_Class.get(), "<init>", "(J)V");
+      layerObject = env->NewObject(PAGLayer_Class.get(), PAGLayer_Constructor,
+                                   reinterpret_cast<jlong>(new JPAGLayerHandle(pagLayer)));
       break;
     }
     default: {
-        // todo:: add more type of PAGLayer
+      static Global<jclass> PAGLayer_Class = env->FindClass("org/libpag/PAGLayer");
+      static auto PAGLayer_Constructor = env->GetMethodID(PAGLayer_Class.get(), "<init>", "(J)V");
+      layerObject = env->NewObject(PAGLayer_Class.get(), PAGLayer_Constructor,
+                                   reinterpret_cast<jlong>(new JPAGLayerHandle(pagLayer)));
+      break;
     }
   }
   return layerObject;
@@ -106,5 +188,40 @@ std::shared_ptr<pag::PAGComposition> ToPAGCompositionNativeObject(JNIEnv* env,
   }
 
   return std::static_pointer_cast<pag::PAGComposition>(nativeContext->get());
+}
+
+pag::Color ToColor(JNIEnv*, jint value) {
+  auto color = static_cast<uint32_t>(value);
+  auto red = (((color) >> 16) & 0xFF);
+  auto green = (((color) >> 8) & 0xFF);
+  auto blue = (((color) >> 0) & 0xFF);
+  return {static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue)};
+}
+
+jobject ToPAGMarkerObject(JNIEnv* env, const pag::Marker* marker) {
+  if (env == nullptr || marker == nullptr) {
+    return nullptr;
+  }
+
+  static Global<jclass> PAGMarker_Class = env->FindClass("org/libpag/PAGMarker");
+  static auto PAGMarker_Construct =
+      env->GetMethodID(PAGMarker_Class.get(), "<init>", "(JJLjava/lang/String;)V");
+  auto comment = SafeConvertToJString(env, marker->comment);
+  auto result = env->NewObject(PAGMarker_Class.get(), PAGMarker_Construct, marker->startTime,
+                               marker->duration, comment);
+  env->DeleteLocalRef(comment);
+  return result;
+}
+
+jobject ToPAGVideoRangeObject(JNIEnv* env, const pag::PAGVideoRange& range) {
+  if (env == nullptr) {
+    return nullptr;
+  }
+
+  static Global<jclass> PAGVideoRange_Class = env->FindClass("org/libpag/PAGVideoRange");
+  static auto PAGVideoRange_Construct =
+      env->GetMethodID(PAGVideoRange_Class.get(), "<init>", "(JJJZ)V");
+  return env->NewObject(PAGVideoRange_Class.get(), PAGVideoRange_Construct, range.startTime(),
+                        range.endTime(), range.playDuration(), range.reversed());
 }
 }  // namespace pag

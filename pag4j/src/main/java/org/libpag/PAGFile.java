@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////////////////////////
 //
 //  Tencent is pleased to support the open source community by making libpag available.
 //
@@ -14,7 +14,7 @@
 //  either express or implied. see the license for the specific language governing permissions
 //  and limitations under the license.
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////////////////////////
 
 package org.libpag;
 
@@ -80,6 +80,18 @@ public class PAGFile extends PAGComposition {
      * The path string of this file, returns empty string if the file is loaded from byte stream.
      */
     public native String path();
+
+    /**
+     * Get a text data of the specified index. The index ranges from 0 to numTexts - 1.
+     * Note: It always returns the default text data.
+     */
+    public native PAGText getTextData(int index);
+
+    /**
+     * Return an array of layers by specified editable index and layer type.
+     */
+    public native PAGLayer[] getLayersByEditableIndex(int editableIndex, int layerType);
+
 
     /**
      * Indicate how to stretch the original duration to fit target duration when file's duration is changed.

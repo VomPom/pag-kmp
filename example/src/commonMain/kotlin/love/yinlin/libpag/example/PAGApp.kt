@@ -24,7 +24,6 @@ import kotlinx.coroutines.delay
 import libpag_compose.example.generated.resources.Res
 import love.yinlin.libpag.PAGAnimation
 import love.yinlin.libpag.PAGConfig
-import love.yinlin.libpag.PAGImageAnimation
 import love.yinlin.libpag.rememberPAGPainter
 
 @Stable
@@ -72,7 +71,7 @@ fun PAGApp() {
     }
 
     Box(
-        Modifier.fillMaxSize().background(Color.Green),
+        Modifier.fillMaxSize().background(Color.Gray),
         contentAlignment = Alignment.BottomCenter
     ) {
         if (!usePainter) {

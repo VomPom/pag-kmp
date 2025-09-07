@@ -66,6 +66,11 @@ public class PAGLayer {
     public native PAGComposition parent();
 
     /**
+     * Returns the markers of this layer.
+     */
+    public native PAGMarker[] markers();
+
+    /**
      * Converts the time from the PAGLayer's (local) timeline to the PAGSurface (global) timeline. The time is in
      * microseconds.
      */

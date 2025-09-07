@@ -1,17 +1,17 @@
 plugins {
     `java-library`
     `maven-publish`
+    kotlin("jvm")
 }
 
 group = "love.yinlin"
 version = "4.4.31"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 dependencies {
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 sourceSets {

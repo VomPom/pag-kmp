@@ -19,7 +19,50 @@ if(NOT Java_FOUND)
     message(FATAL_ERROR "PAG4J requires Java to build!")
     return()
 endif()
-find_package(JNI REQUIRED)
+
+# Handle JNI discovery for Android cross-compilation
+if (ANDROID)
+    # When cross-compiling for Android, we need to find JNI on the host system
+    # but CMake's FindJNI module gets confused by the Android toolchain
+
+    # Get JAVA_HOME from environment or use the found Java installation
+    if (DEFINED ENV{JAVA_HOME})
+        set(JAVA_HOME $ENV{JAVA_HOME})
+    else ()
+        get_filename_component(JAVA_HOME ${Java_JAVA_EXECUTABLE} DIRECTORY)
+        get_filename_component(JAVA_HOME ${JAVA_HOME} DIRECTORY)
+    endif ()
+
+    message(STATUS "Using JAVA_HOME: ${JAVA_HOME}")
+
+    # Manually set JNI paths for Android cross-compilation
+    set(JNI_INCLUDE_DIRS
+            ${JAVA_HOME}/include
+            ${JAVA_HOME}/include/darwin  # macOS-specific
+    )
+
+    # For Android builds, we only need the include directories, not the libraries
+    # The JNI libraries will be provided by the Android runtime
+    set(JNI_LIBRARIES "")  # Empty for Android builds
+
+    # Verify the include directories exist
+    foreach (include_dir ${JNI_INCLUDE_DIRS})
+        if (NOT EXISTS ${include_dir})
+            message(WARNING "JNI include directory not found: ${include_dir}")
+        endif ()
+    endforeach ()
+
+    # Check for jni.h specifically
+    if (NOT EXISTS ${JAVA_HOME}/include/jni.h)
+        message(FATAL_ERROR "jni.h not found in ${JAVA_HOME}/include/")
+    endif ()
+
+    message(STATUS "JNI include directories: ${JNI_INCLUDE_DIRS}")
+
+else ()
+    # For non-Android builds, use the standard FindJNI module
+    find_package(JNI REQUIRED)
+endif ()
 
 file(GLOB PAG4J_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
@@ -32,6 +75,7 @@ add_library(pag4j SHARED
 target_include_directories(pag4j PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${JNI_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/
 )
 
 target_link_libraries(pag4j

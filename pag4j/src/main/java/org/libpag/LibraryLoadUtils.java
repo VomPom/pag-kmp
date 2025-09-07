@@ -1,6 +1,10 @@
 package org.libpag;
 
 public class LibraryLoadUtils {
+    public static boolean loadPag4j() {
+        return LibraryLoadUtils.loadLibrary("pag4j");
+    }
+
     public static boolean loadLibrary(String libName) {
         if (libName == null || libName.isEmpty()) {
             return false;
