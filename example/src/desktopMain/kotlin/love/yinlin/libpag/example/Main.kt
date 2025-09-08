@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import libpag_compose.example.generated.resources.Res
+import love.yinlin.libpag.PAGView
 import org.libpag.PAGFile
 import org.libpag.PAGLayer
 
@@ -37,8 +40,13 @@ fun main() = application {
         title = "libpag-compose example",
     ) {
         var pagFile by remember { mutableStateOf<PAGFile?>(null) }
-        Box {
-            PAGApp()
+        var data: ByteArray? by remember { mutableStateOf(null) }
+        Box(modifier = Modifier.fillMaxSize()) {
+            PAGView(
+                data = data,
+                modifier = Modifier.align(Alignment.Center),
+                repeatCount = 5
+            )
             if (pagFile == null) {
                 Text("PAG file is null.")
             } else {
@@ -48,6 +56,8 @@ fun main() = application {
 
         LaunchedEffect(Unit) {
             pagFile = PAGFile.Load(Res.readBytes("files/video.pag"))
+            data = Res.readBytes("files/video.pag")
+            println("data size:${data?.size}")
         }
     }
 }

@@ -1,3 +1,4 @@
+// 这份gradle 脚本用于在 Android Studio 编译的时候将 pag4j 模块作为 Android library 便于 jni 代码 ide 展示
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
