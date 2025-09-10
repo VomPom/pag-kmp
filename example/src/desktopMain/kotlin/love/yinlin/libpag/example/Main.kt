@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import libpag_compose.example.generated.resources.Res
+import love.yinlin.libpag.PAGConfig
 import love.yinlin.libpag.PAGView
 import org.libpag.PAGFile
 import org.libpag.PAGLayer
@@ -41,11 +42,19 @@ fun main() = application {
     ) {
         var pagFile by remember { mutableStateOf<PAGFile?>(null) }
         var data: ByteArray? by remember { mutableStateOf(null) }
+        val listener = PAGConfig.rememberAnimationListener(
+            onUpdate = { _, progress ->
+                println("play progress:$progress")
+            },
+            onRepeat = { println("PAG 动画重新开始播放") },
+        )
+
         Box(modifier = Modifier.fillMaxSize()) {
             PAGView(
                 data = data,
                 modifier = Modifier.align(Alignment.Center),
-                repeatCount = 5
+                repeatCount = 5,
+                listener = listener
             )
             if (pagFile == null) {
                 Text("PAG file is null.")

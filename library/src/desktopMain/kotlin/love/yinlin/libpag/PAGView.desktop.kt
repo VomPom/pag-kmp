@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,10 +27,11 @@ import kotlin.use
 
 @Composable
 fun PAGView(
-    data: ByteArray?,
+    file: PAGFile?,
     modifier: Modifier,
     isPlaying: Boolean = true,
     repeatCount: Int = PAGConfig.INFINITY,
+    listener: PAGConfig.AnimationListener = PAGConfig.rememberAnimationListener(),
 ) {
     val player = remember { PAGPlayer() }
     var surface by remember { mutableStateOf<PAGSurface?>(null) }
@@ -50,9 +50,9 @@ fun PAGView(
             0.0
         }
     }
-    LaunchedEffect(data) {
-        if (data == null) return@LaunchedEffect
-        PAGFile.Load(data)?.let { pagFile ->
+    LaunchedEffect(file) {
+        if (file == null) return@LaunchedEffect
+        file.let { pagFile ->
             player.composition = pagFile
             totalDurationUs = pagFile.duration()
             fps = pagFile.frameRate()
@@ -79,10 +79,16 @@ fun PAGView(
 
     LaunchedEffect(progress) {
         player.progress = progress
+        listener.onAnimationUpdate(null, progress)
+        if (progress == 0.0) {
+            listener.onAnimationStart(null)
+        }
         if (progress >= 1.0) {
             if (repeatCount == PAGConfig.INFINITY || ++playCount < repeatCount) {
                 playDurationUs = 0
+                listener.onAnimationRepeat(null)
             }
+            listener.onAnimationEnd(null)
         }
         player.flush()
         surface?.let {
@@ -108,4 +114,17 @@ fun PAGView(
         contentDescription = "",
         modifier = modifier
     )
+}
+
+@Composable
+fun PAGView(
+    data: ByteArray?,
+    modifier: Modifier,
+    isPlaying: Boolean = true,
+    repeatCount: Int = PAGConfig.INFINITY,
+    listener: PAGConfig.AnimationListener = PAGConfig.rememberAnimationListener(),
+) {
+    data?.let {
+        PAGView(PAGFile.Load(it), modifier, isPlaying, repeatCount, listener)
+    }
 }
