@@ -219,7 +219,7 @@ public class PAGPlayer {
 
     static {
         // LibraryLoadUtils.loadLibrary("ffavc");
-        LibraryLoadUtils.loadLibrary("pag4j");
+        LibraryLoadUtils.loadPag4j();
         nativeInit();
     }
 

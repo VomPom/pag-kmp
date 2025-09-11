@@ -7,6 +7,6 @@ public class PAG {
     public static native String SDKVersion();
 
     static {
-        LibraryLoadUtils.loadLibrary("pag4j");
+        LibraryLoadUtils.loadPag4j();
     }
 }

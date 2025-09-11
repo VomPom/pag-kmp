@@ -117,7 +117,7 @@ public class PAGFile extends PAGComposition {
     private static native final void nativeInit();
 
     static {
-        LibraryLoadUtils.loadLibrary("pag4j");
+        LibraryLoadUtils.loadPag4j();
         nativeInit();
     }
 }

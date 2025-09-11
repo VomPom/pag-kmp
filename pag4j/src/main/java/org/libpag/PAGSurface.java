@@ -68,7 +68,7 @@ public class PAGSurface {
     }
 
     static {
-        LibraryLoadUtils.loadLibrary("pag4j");
+        LibraryLoadUtils.loadPag4j();
         nativeInit();
     }
 

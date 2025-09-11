@@ -99,10 +99,12 @@ compose.desktop {
     }
 }
 
-tasks.withType<JavaExec> {
-    val libraryPath = project(":pag4j").projectDir.resolve(".cxx")
-    systemProperty("java.library.path", libraryPath)
-}
+
+// 不再需要下面的逻辑添加 "java.library.path" Native 侧通过 LibraryLoadUtils 对 jar 包处理，能正常加载到对应的 .dylib .dll
+//tasks.withType<JavaExec> {
+//    val libraryPath = project(":pag4j").projectDir.resolve(".cxx")
+//    systemProperty("java.library.path", libraryPath)
+//}
 
 android {
     compileSdk = 35
@@ -119,6 +121,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
     kotlin {
-        jvmToolchain(21)
+        jvmToolchain(17)
     }
 }

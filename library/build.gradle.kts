@@ -11,8 +11,8 @@ plugins {
     alias(libs.plugins.vanniktech.mavenPublish)
 }
 
-group = "love.yinlin"
-version = "1.0.0"
+group = "com.vompom"
+version = "1.0.3"
 
 kotlin {
     compilerOptions {
@@ -24,7 +24,7 @@ kotlin {
     androidTarget {
         publishLibraryVariants("release")
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
@@ -108,8 +108,8 @@ android {
         minSdk = 24
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
@@ -122,25 +122,25 @@ mavenPublishing {
         name = "libpag-compose"
         description = "A library for integrating PAG (Portable Animated Graphics) with Compose Multiplatform."
         inceptionYear = "2025"
-        url = "https://github.com/rachel-ylcs/pag-kmp/"
+        url = "https://github.com/vompom/pag-kmp/"
         licenses {
             license {
                 name = "Apache License, Version 2.0"
                 url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
-                distribution = "https://raw.githubusercontent.com/rachel-ylcs/pag-kmp/refs/heads/main/LICENSE"
+                distribution = "https://raw.githubusercontent.com/vompom/pag-kmp/refs/heads/main/LICENSE"
             }
         }
         developers {
             developer {
-                id = "ylcs"
-                name = "银临茶舍"
-                url = "https://github.com/rachel-ylcs/"
+                id = "vompom"
+                name = "vompom"
+                url = "https://github.com/vompom/"
             }
         }
         scm {
-            url = "https://github.com/rachel-ylcs/pag-kmp/"
-            connection = "scm:git:git://github.com/rachel-ylcs/pag-kmp.git"
-            developerConnection = "scm:git:ssh://git@ssh.github.com:443/rachel-ylcs/pag-kmp.git"
+            url = "https://github.com/vompom/pag-kmp/"
+            connection = "scm:git:git://github.com/vompom/pag-kmp.git"
+            developerConnection = "scm:git:ssh://git@ssh.github.com:443/vompom/pag-kmp.git"
         }
     }
 }

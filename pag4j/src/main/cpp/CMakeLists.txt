@@ -94,3 +94,17 @@ if(WIN32)
     file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/libGLESv2.dll)
     file(COPY ${GRADLE_ROOT_DIR}/libpag/third_party/tgfx/vendor/angle/win/x64/libGLESv2.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endif()
+
+if (APPLE)
+    # Determine Mac architecture
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+        set(MAC_ARCH "arm64")
+    else ()
+        set(MAC_ARCH "x64")
+    endif ()
+
+    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/libEGL.dylib)
+    file(COPY ${GRADLE_ROOT_DIR}/libpag/third_party/tgfx/vendor/swiftshader/mac/${MAC_ARCH}/libEGL.dylib DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/libGLESv2.dylib)
+    file(COPY ${GRADLE_ROOT_DIR}/libpag/third_party/tgfx/vendor/swiftshader/mac/${MAC_ARCH}/libGLESv2.dylib DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endif ()

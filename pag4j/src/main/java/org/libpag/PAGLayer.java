@@ -176,7 +176,11 @@ public class PAGLayer {
     }
 
     static {
-        LibraryLoadUtils.loadLibrary("pag4j");
-        nativeInit();
+        LibraryLoadUtils.loadPag4j();
+        try {
+            nativeInit();
+        } catch (UnsatisfiedLinkError e) {
+            throw new RuntimeException("Failed to initialize PAGLayer native methods. Make sure libpag4j is properly loaded.", e);
+        }
     }
 }
