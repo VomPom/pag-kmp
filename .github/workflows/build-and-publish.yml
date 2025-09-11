@@ -26,8 +26,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          lfs: true
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v3
@@ -56,38 +57,15 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          brew install cmake ninja node
+          brew install ninja node
           npm install -g depsync
 
       - name: Sync libpag dependencies
         working-directory: pag4j/libpag
         run: |
-          chmod +x sync_deps.sh
-          ./sync_deps.sh
-
-      - name: Build tgfx
-        working-directory: pag4j/libpag/tgfx
-        run: |
-          if [ -f "build_tgfx" ]; then
-            node build_tgfx -p mac -a x64 -o out/cache/release/mac
-          else
-            mkdir -p cmake-build-release
-            cd cmake-build-release
-            cmake .. -DCMAKE_BUILD_TYPE=Release -GNinja
-            ninja
-          fi
-
-      - name: Build libpag
-        working-directory: pag4j/libpag
-        run: |
-          mkdir -p cmake-build-release
-          cd cmake-build-release
-          cmake .. -DCMAKE_BUILD_TYPE=Release -GNinja \
-            -DPAG_USE_QT=OFF \
-            -DPAG_BUILD_SHARED=ON \
-            -DPAG_BUILD_FRAMEWORK=ON \
-            -DPAG_USE_OPENGL=ON
-          ninja
+          npm install depsync -g
+          depsync
+        shell: bash
 
       - name: Build pag4j native library
         working-directory: pag4j
